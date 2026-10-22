@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prompt Generator · 提示词生成器 — 从灵感到成图的本地工作台</title>
+  <meta name="description" content="开源免费的 AI 提示词管理与生图工具：随机组合、中英同步、身份开关、润色模板组、AI 润色与 ComfyUI 生图，数据保存在本地。">
+  <meta name="theme-color" content="#f6f7fb">
+  <meta property="og:title" content="Prompt Generator · 提示词生成器">
+  <meta property="og:description" content="把脑海里的画面，变成可执行的提示词。提示词管理、AI 润色与 ComfyUI 生图的一体化本地工作台。">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/preview.png">
+  <meta property="og:image:width" content="1440">
+  <meta property="og:image:height" content="760">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <script>
+    (function () {
+      try {
+        var q = new URLSearchParams(location.search).get('theme');
+        var saved = localStorage.getItem('pg-page-theme');
+        var theme = q || saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {}
+    })();
+  </script>
+  <link rel="stylesheet" href="assets/style.css">
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到主要内容</a>
+
+  <!-- 图标精灵 -->
+  <svg class="sprite" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <defs>
+      <linearGradient id="logo-g" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#6d8bff"/>
+        <stop offset=".55" stop-color="#4d6bfe"/>
+        <stop offset="1" stop-color="#7c5cff"/>
+      </linearGradient>
+    </defs>
+    <symbol id="i-logo" viewBox="0 0 40 40">
+      <rect x="1" y="1" width="38" height="38" rx="11" fill="url(#logo-g)"/>
+      <path d="M20 8.5c1.05 5.9 3.1 7.95 9 9-5.9 1.05-7.95 3.1-9 9-1.05-5.9-3.1-7.95-9-9 5.9-1.05 7.95-3.1 9-9Z" fill="#fff"/>
+      <circle cx="27.5" cy="27" r="2.2" fill="#fff" opacity=".9"/>
+      <circle cx="12.5" cy="27.5" r="1.4" fill="#fff" opacity=".65"/>
+    </symbol>
+    <symbol id="i-github" viewBox="0 0 24 24">
+      <path fill="currentColor" d="M12 .8a11.2 11.2 0 0 0-3.54 21.83c.56.1.77-.24.77-.54v-1.9c-3.12.68-3.78-1.5-3.78-1.5-.51-1.3-1.25-1.64-1.25-1.64-1.02-.7.08-.68.08-.68 1.13.08 1.72 1.16 1.72 1.16 1 1.72 2.63 1.22 3.27.93.1-.72.39-1.22.71-1.5-2.49-.28-5.11-1.24-5.11-5.53 0-1.22.44-2.22 1.15-3-.12-.28-.5-1.42.11-2.96 0 0 .94-.3 3.08 1.15a10.7 10.7 0 0 1 5.61 0c2.14-1.45 3.08-1.15 3.08-1.15.61 1.54.23 2.68.11 2.96.72.78 1.15 1.78 1.15 3 0 4.3-2.63 5.25-5.13 5.52.4.35.76 1.03.76 2.08v3.08c0 .3.2.65.78.54A11.2 11.2 0 0 0 12 .8Z"/>
+    </symbol>
+    <symbol id="i-arrow-right" viewBox="0 0 24 24">
+      <path d="M4 12h15M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-arrow-up-right" viewBox="0 0 24 24">
+      <path d="M7 17 17 7M8 7h9v9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24">
+      <path d="M12 3.5c.7 4.1 2.4 5.8 6.5 6.5-4.1.7-5.8 2.4-6.5 6.5-.7-4.1-2.4-5.8-6.5-6.5 4.1-.7 5.8-2.4 6.5-6.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M18.5 16.5c.3 1.6 1 2.3 2.5 2.5-1.5.3-2.2 1-2.5 2.5-.3-1.5-1-2.2-2.5-2.5 1.5-.2 2.2-.9 2.5-2.5Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-shuffle" viewBox="0 0 24 24">
+      <path d="M4 7h3.5c4.5 0 4.5 10 9 10H20M17 14l3 3-3 3M4 17h3.5c1.6 0 2.7-1.2 3.7-2.7M14 9.7C14.9 8.2 15.9 7 17.5 7H20M17 4l3 3-3 3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-wand" viewBox="0 0 24 24">
+      <path d="m4 20 11-11M13.5 5.5l1-2M18.5 10.5l2-1M17 4l.7 1.8M20 7l-1.8.7M8.5 8.5 10 10" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+      <path d="m12.8 6.2 5 5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24">
+      <rect x="8" y="8" width="11" height="12" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M16 8V6.5A2.5 2.5 0 0 0 13.5 4h-7A2.5 2.5 0 0 0 4 6.5v9A2.5 2.5 0 0 0 6.5 18H8" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="M8 5.5v13l10-6.5-10-6.5Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 4v11m0 0 4-4m-4 4-4-4M5 19h14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M5 7h14M10 7V5h4v2M7 7l.8 12h8.4L17 7M10 11v5M14 11v5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M18.7 5.3l-1.4 1.4M6.7 17.3l-1.4 1.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24">
+      <path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="m16 16 4 4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12.5 4.5 4.5L19 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+      <rect x="5" y="10" width="14" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M8 10V7.5a4 4 0 0 1 8 0V10M12 14v2.5" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-database" viewBox="0 0 24 24">
+      <ellipse cx="12" cy="6" rx="7" ry="3" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24">
+      <path d="m12 3 9 5-9 5-9-5 9-5ZM3 12l9 5 9-5M3 16l9 5 9-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-image" viewBox="0 0 24 24">
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="9" cy="10" r="1.6" fill="currentColor"/>
+      <path d="m5 17 4.5-4.5 3 3L16 12l4 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24">
+      <rect x="3" y="4.5" width="18" height="15" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <path d="m7 9 3 3-3 3M12.5 15H17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-dice" viewBox="0 0 24 24">
+      <rect x="4" y="4" width="16" height="16" rx="4" fill="none" stroke="currentColor" stroke-width="1.6"/>
+      <circle cx="9" cy="9" r="1.25" fill="currentColor"/>
+      <circle cx="15" cy="15" r="1.25" fill="currentColor"/>
+      <circle cx="15" cy="9" r="1.25" fill="currentColor"/>
+      <circle cx="9" cy="15" r="1.25" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24">
+      <path d="M13 2.5 4.5 13.5H11l-1 8 8.5-11H12l1-8Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 3 5 6v5.5c0 4.4 2.9 8.2 7 9.5 4.1-1.3 7-5.1 7-9.5V6l-7-3Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="m9 12 2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24">
+      <path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h4l2 2.5h6A2.5 2.5 0 0 1 20.5 10v6a2.5 2.5 0 0 1-2.5 2.5H6A2.5 2.5 0 0 1 3.5 16V7.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24">
+      <path d="M20 11a8 8 0 1 0-2.3 6M20 5v6h-6" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+    <symbol id="i-external" viewBox="0 0 24 24">
+      <path d="M14 4h6v6M20 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M18 14v4.5A2.5 2.5 0 0 1 15.5 21h-9A2.5 2.5 0 0 1 4 18.5v-9A2.5 2.5 0 0 1 6.5 7H11" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24">
+      <path d="M6 3.5h8l4 4V20a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 5 20V5a1.5 1.5 0 0 1 1-1.5Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <path d="M14 3.5V8h4M8 12h8M8 16h6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+  </svg>
+
+  <header class="site-nav" id="top">
+    <div class="container nav-inner">
+      <a class="brand" href="#top" aria-label="Prompt Generator 首页">
+        <svg class="brand-mark" aria-hidden="true"><use href="#i-logo"/></svg>
+        <span class="brand-text"><b>Prompt Generator</b><small>提示词生成器</small></span>
+      </a>
+      <nav class="nav-links" aria-label="主导航">
+        <a href="#features">功能亮点</a>
+        <a href="#demo">交互演示</a>
+        <a href="#pipeline">异步流水线</a>
+        <a href="#start">快速开始</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="icon-btn" id="themeToggle" type="button" aria-label="切换到暗色主题" title="切换主题">
+          <svg class="icon sun" aria-hidden="true"><use href="#i-sun"/></svg>
+          <svg class="icon moon" aria-hidden="true"><use href="#i-moon"/></svg>
+        </button>
+        <a class="btn btn-sm btn-ink" href="https://github.com/git-squirrel/prompt-generator" target="_blank" rel="noopener" aria-label="在 GitHub 查看 Prompt Generator">
+          <svg class="icon" aria-hidden="true"><use href="#i-github"/></svg>
+          <span>GitHub</span>
+          <span class="star-num">Star</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" tabindex="-1">
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-bg" aria-hidden="true">
+        <span class="orb orb-a"></span>
+        <span class="orb orb-b"></span>
+        <span class="orb orb-c"></span>
+        <span class="hero-grid"></span>
+      </div>
+
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <a class="badge" href="https://github.com/git-squirrel/prompt-generator" target="_blank" rel="noopener">
+            <span class="badge-dot"></span>
+            <span>v3.0 已发布</span>
+            <span class="badge-sep"></span>
+            <span>开源 · MIT License</span>
+            <svg class="icon icon-xs" aria-hidden="true"><use href="#i-arrow-up-right"/></svg>
+          </a>
+
+          <h1>把脑海里的画面<br>变成<span class="grad-text">可执行的提示词</span></h1>
+          <p class="hero-sub">
+            提示词管理、随机组合、中英同步、AI 润色与 ComfyUI 生图，收进一个本地优先的工作台。
+            从灵感到成图，不必在五个工具之间来回切换。
+          </p>
+
+          <div class="hero-cta">
+            <a class="btn btn-primary btn-lg" href="#demo">
+              进入交互演示
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg>
+            </a>
+            <a class="btn btn-ghost btn-lg" href="https://github.com/git-squirrel/prompt-generator" target="_blank" rel="noopener">
+              <svg class="icon" aria-hidden="true"><use href="#i-github"/></svg>
+              查看源码
+            </a>
+          </div>
+
+          <ul class="hero-meta" aria-label="项目特性">
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Python 3.8+</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>5 家 AI 服务商</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>ComfyUI 工作流</li>
+            <li><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>数据存本地</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <span class="mock-glow"></span>
+
+          <div class="float-card float-ai">
+            <span class="float-icon"><svg class="icon"><use href="#i-sparkles"/></svg></span>
+            <span class="float-text"><b>AI 润色完成</b><small>1.2s · 中英双语</small></span>
+          </div>
+
+          <div class="mock-back">
+            <div class="art" data-art="wave"></div>
+            <span class="mock-back-label">生图画廊 · #04</span>
+            <span class="mock-back-index">04</span>
+          </div>
+
+          <div class="mock">
+            <div class="mock-bar">
+              <span class="traffic"><i></i><i></i><i></i></span>
+              <span class="mock-bar-title">Prompt Generator</span>
+              <span class="mock-url">localhost:8080</span>
+              <span class="conn-dot"></span>
+            </div>
+            <div class="mock-body">
+              <div class="mock-head">
+                <span class="mock-eyebrow">提示词工作台</span>
+                <span class="mock-chip">v3.0</span>
+              </div>
+
+              <div class="mock-prompt">
+                <div class="mock-prompt-label">中文 <span>PROMPT</span></div>
+                <p class="mock-zh">中国，25岁，女，山水，写实，黄金时刻，浅景深，特写<span class="caret"></span></p>
+                <p class="mock-en">Chinese, 25 years old, Female, landscape, realistic, golden hour, shallow depth of field, close-up</p>
+              </div>
+
+              <div class="mock-pills">
+                <span class="mock-pill active">山水</span>
+                <span class="mock-pill">写实</span>
+                <span class="mock-pill">黄金时刻</span>
+                <span class="mock-pill">浅景深</span>
+                <span class="mock-pill more">+4</span>
+                <span class="mock-spacer"></span>
+                <span class="mock-gen"><svg class="icon"><use href="#i-sparkles"/></svg>随机组合</span>
+              </div>
+
+              <div class="mock-gallery">
+                <figure>
+                  <div class="art" data-art="dune"></div>
+                  <figcaption><span>山水</span><em>1024×1024</em></figcaption>
+                </figure>
+                <figure>
+                  <div class="art" data-art="forest"></div>
+                  <figcaption><span>森林</span><em>832×1216</em></figcaption>
+                </figure>
+                <figure>
+                  <div class="art" data-art="city"></div>
+                  <figcaption><span>城市</span><em>1216×832</em></figcaption>
+                </figure>
+              </div>
+
+              <div class="mock-foot">
+                <span class="ok-dot"></span>
+                <span>ComfyUI 已连接</span>
+                <span class="mock-foot-sep"></span>
+                <span>seed 438892078</span>
+                <span class="mock-spacer"></span>
+                <span>队列 0</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="container hero-stats">
+        <div class="stat">
+          <b><span data-count="15">15</span><i>+</i></b>
+          <span>项核心能力</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="5">5</span></b>
+          <span>家 AI 服务商</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="3">3</span></b>
+          <span>种润色语言模式</span>
+        </div>
+        <div class="stat">
+          <b><span data-count="100">100</span><i>%</i></b>
+          <span>数据本地存储</span>
+        </div>
+        <p class="stats-note">无需数据库 · 无需账号 · 一条命令启动</p>
+      </div>
+    </section>
+
+    <!-- 三步流程 -->
+    <section class="flow-section" aria-label="工作流程">
+      <div class="container">
+        <div class="flow-grid">
+          <article class="flow-step">
+            <div class="flow-top">
+              <span class="flow-no">01</span>
+              <span class="flow-icon"><svg class="icon"><use href="#i-shuffle"/></svg></span>
+            </div>
+            <h3>随手组合</h3>
+            <p>打开需要的类别，一次抽取场景、风格、光线与景别。中英文同步生成，点选词条还能锁定下一次的选择。</p>
+            <div class="flow-viz flow-chips">
+              <span>山水</span><span>写实</span><span>黄金时刻</span><span class="dim">+2</span>
+            </div>
+          </article>
+
+          <article class="flow-step">
+            <div class="flow-top">
+              <span class="flow-no">02</span>
+              <span class="flow-icon"><svg class="icon"><use href="#i-sparkles"/></svg></span>
+            </div>
+            <h3>按需润色</h3>
+            <p>模板组补齐光影、肤质与画质；或者交给 AI，按中文、英文或双语重写。关闭人物身份后，人物相关的模板会自动跳过。</p>
+            <div class="flow-viz flow-templates">
+              <span class="on">画面描述</span><span class="on person">皮肤描述</span><span class="on">画质描述</span>
+            </div>
+          </article>
+
+          <article class="flow-step">
+            <div class="flow-top">
+              <span class="flow-no">03</span>
+              <span class="flow-icon"><svg class="icon"><use href="#i-image"/></svg></span>
+            </div>
+            <h3>直接出图</h3>
+            <p>载入 ComfyUI 工作流，批量排队、自动换种子。结果进入瀑布流画廊，提示词与种子一并留存。</p>
+            <div class="flow-viz flow-progress">
+              <span class="bar"><i></i></span><em>采样 25 / 25</em>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- 交互演示 -->
+    <section class="demo-section" id="demo">
+      <div class="container">
+        <div class="section-head split">
+          <div class="section-head-copy">
+            <span class="eyebrow">LIVE DEMO</span>
+            <h2>不用安装，先跑一遍完整流程</h2>
+            <p>随机组合、模板优化、AI 润色、ComfyUI 排队与画廊都可以亲手点一遍。数据是演示用的，不会调用真实的 AI 或生图接口。</p>
+          </div>
+          <div class="demo-head-actions">
+            <button class="btn btn-ghost btn-sm" id="btnAuto" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>
+              自动演示
+            </button>
+            <button class="btn btn-ghost btn-sm" id="btnReset" type="button">
+              <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
+              重置
+            </button>
+          </div>
+        </div>
+
+        <div class="demo-shell" id="demoShell">
+          <div class="demo-topbar">
+            <div class="demo-brand">
+              <svg class="demo-logo" aria-hidden="true"><use href="#i-logo"/></svg>
+              <b>Prompt Generator</b>
+              <span class="demo-tag">交互演示</span>
+            </div>
+            <div class="demo-top-right">
+              <span class="demo-status"><i></i>ComfyUI 已连接 <span>（模拟）</span></span>
+              <span class="demo-theme-icon" aria-hidden="true"><svg class="icon"><use href="#i-sun"/></svg></span>
+            </div>
+          </div>
+
+          <div class="demo-toolbar">
+            <div class="seg" role="group" aria-label="AI 润色语言">
+              <button class="seg-btn is-active" type="button" data-lang="both" aria-pressed="true">中 + 英</button>
+              <button class="seg-btn" type="button" data-lang="zh" aria-pressed="false">仅中文</button>
+              <button class="seg-btn" type="button" data-lang="en" aria-pressed="false">仅英文</button>
+            </div>
+            <label class="tool-switch">
+              <span>AI 润色</span>
+              <button class="switch is-on" id="aiSwitch" type="button" role="switch" aria-checked="true" aria-label="AI 润色"><span></span></button>
+            </label>
+            <label class="tool-switch">
+              <span>人物身份</span>
+              <button class="switch is-on" id="identitySwitch" type="button" role="switch" aria-checked="true" aria-label="人物身份"><span></span></button>
+            </label>
+            <span class="toolbar-hint">点选词条可锁定下一次组合</span>
+          </div>
+
+          <div class="demo-body">
+            <aside class="demo-col lib-col" aria-label="词条库">
+              <div class="col-head">
+                <h3>词条库</h3>
+                <span class="col-meta" id="libMeta">6 类 · 48 条</span>
+              </div>
+              <div class="library" id="library"></div>
+              <noscript>
+                <p class="demo-noscript">交互演示需要 JavaScript。启用后即可随机组合、润色并体验生图流程。</p>
+              </noscript>
+            </aside>
+
+            <div class="demo-col prompt-col">
+              <div class="col-head">
+                <h3>提示词</h3>
+                <span class="token-pill" id="tokenPill">≈ 0 tokens</span>
+              </div>
+
+              <div class="prompt-pane">
+                <div class="pane-head">
+                  <span>中文</span>
+                  <button class="mini-btn" id="btnCopyZh" type="button" aria-label="复制中文提示词">
+                    <svg class="icon"><use href="#i-copy"/></svg>复制
+                  </button>
+                </div>
+                <textarea id="promptZh" rows="3" placeholder="点击「随机组合」，从已开启的类别中抽一组提示词…" spellcheck="false" aria-label="中文提示词"></textarea>
+              </div>
+
+              <div class="prompt-pane en-pane">
+                <div class="pane-head">
+                  <span>English</span>
+                  <button class="mini-btn" id="btnCopyEn" type="button" aria-label="复制英文提示词">
+                    <svg class="icon"><use href="#i-copy"/></svg>复制
+                  </button>
+                </div>
+                <textarea id="promptEn" rows="2" placeholder="English prompt will appear here…" spellcheck="false" aria-label="英文提示词"></textarea>
+              </div>
+
+              <div class="prompt-meta" id="promptMeta">
+                <span class="meta-dot"></span>
+                <span>身份：中国 · 25 岁 · 女</span>
+                <span class="meta-sep"></span>
+                <span id="polishState">尚未润色</span>
+              </div>
+
+              <div class="prompt-actions">
+                <button class="d-btn d-primary" id="btnRandom" type="button">
+                  <svg class="icon"><use href="#i-shuffle"/></svg>随机组合
+                </button>
+                <button class="d-btn" id="btnPolish" type="button">
+                  <svg class="icon"><use href="#i-wand"/></svg>模板优化
+                </button>
+                <button class="d-btn" id="btnAI" type="button">
+                  <svg class="icon"><use href="#i-sparkles"/></svg>AI 润色
+                </button>
+              </div>
+            </div>
+
+            <aside class="demo-col queue-col" aria-label="生图队列">
+              <div class="col-head">
+                <h3>生图队列</h3>
+                <span class="queue-state"><i></i>就绪</span>
+              </div>
+
+              <label class="field">
+                <span>工作流</span>
+                <select id="workflow">
+                  <option>Flux · 写实人像</option>
+                  <option>SDXL · 电影场景</option>
+                  <option>Qwen-Image · 插画</option>
+                </select>
+              </label>
+
+              <div class="field-row">
+                <label class="field">
+                  <span>尺寸</span>
+                  <select id="size">
+                    <option value="1024×1024">1024 × 1024</option>
+                    <option value="832×1216">832 × 1216</option>
+                    <option value="1216×832">1216 × 832</option>
+                    <option value="768×1344">768 × 1344</option>
+                  </select>
+                </label>
+                <div class="field field-batch">
+                  <span>批次</span>
+                  <div class="stepper">
+                    <button type="button" id="batchMinus" aria-label="减少批次">−</button>
+                    <b id="batchVal">2</b>
+                    <button type="button" id="batchPlus" aria-label="增加批次">+</button>
+                  </div>
+                </div>
+              </div>
+
+              <label class="field">
+                <span>随机种子</span>
+                <div class="seed-row">
+                  <input id="seed" type="text" value="438892078" inputmode="numeric" autocomplete="off">
+                  <button type="button" id="btnSeed" aria-label="随机生成种子"><svg class="icon"><use href="#i-dice"/></svg></button>
+                </div>
+              </label>
+
+              <button class="generate-btn" id="btnGenerate" type="button">
+                <svg class="icon"><use href="#i-play"/></svg>
+                <span>开始生图</span>
+                <em id="genCount">2 张</em>
+              </button>
+
+              <div class="progress-card">
+                <div class="progress-head">
+                  <span id="genStatus">等待任务</span>
+                  <b id="genPct">0%</b>
+                </div>
+                <div class="progress"><i id="genBar"></i></div>
+              </div>
+
+              <div class="demo-log" id="genLog" aria-live="polite">
+                <p class="log-muted">◦ 演示环境就绪 · 已连接模拟 ComfyUI</p>
+              </div>
+            </aside>
+          </div>
+
+          <div class="demo-gallery">
+            <div class="gallery-head">
+              <h3>生图画廊</h3>
+              <span class="col-meta" id="galleryCount">4 张</span>
+              <span class="gallery-hint">点击查看提示词与种子</span>
+              <button class="mini-btn gallery-clear" id="btnClearGallery" type="button">
+                <svg class="icon"><use href="#i-trash"/></svg>清空
+              </button>
+            </div>
+            <div class="masonry" id="gallery"></div>
+          </div>
+        </div>
+
+        <p class="demo-note">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg>
+          这是前端模拟演示：不会上传任何数据，也不会消耗你的 API 额度。
+        </p>
+      </div>
+    </section>
+
+    <!-- 功能亮点 -->
+    <section class="features-section" id="features">
+      <div class="container">
+        <div class="section-head center">
+          <span class="eyebrow">FEATURES</span>
+          <h2>把重复劳动，交给工具</h2>
+          <p>每一个开关，都为了解决提示词工作流里真实存在的摩擦。</p>
+        </div>
+
+        <div class="bento">
+          <article class="bento-card span-7 tint-blue">
+            <div class="bc-copy">
+              <span class="bc-tag">词条管理</span>
+              <h3>词库不再是一团乱麻</h3>
+              <p>类别开关、搜索过滤、批量添加与删除。哪怕词条涨到几百条，也能在几秒内找到要用的那一句。</p>
+            </div>
+            <div class="bc-visual lib-visual" aria-hidden="true">
+              <div class="lv-search"><svg class="icon"><use href="#i-search"/></svg><span>搜索词条，如「逆光」</span><kbd>⌘ K</kbd></div>
+              <div class="lv-row">
+                <span class="lv-cat">场景 <b>15</b></span>
+                <span class="lv-chip on">山水</span><span class="lv-chip on">城市</span><span class="lv-chip">森林</span><span class="lv-chip on">海滩</span>
+              </div>
+              <div class="lv-row">
+                <span class="lv-cat">光线 <b>15</b></span>
+                <span class="lv-chip on">黄金时刻</span><span class="lv-chip on">逆光</span><span class="lv-chip">霓虹</span><span class="lv-chip">烛光</span>
+              </div>
+              <div class="lv-row">
+                <span class="lv-cat">画面 <b>15</b></span>
+                <span class="lv-chip on">浅景深</span><span class="lv-chip">广角</span><span class="lv-chip on">特写</span><span class="lv-chip">航拍</span>
+              </div>
+              <div class="lv-foot"><span><svg class="icon"><use href="#i-check"/></svg>批量导入</span><span><svg class="icon"><use href="#i-check"/></svg>中英同步</span><span><svg class="icon"><use href="#i-check"/></svg>刷新不丢</span></div>
+            </div>
+          </article>
+
+          <article class="bento-card span-5 tint-warm">
+            <div class="bc-copy">
+              <span class="bc-tag">人物身份</span>
+              <h3>一键抽离人物描述</h3>
+              <p>关闭身份总开关，年龄、地区、性别和中英文人物模板全部跳过，直接生成纯场景画面。</p>
+            </div>
+            <div class="bc-visual id-visual" id="idVisual">
+              <div class="id-head">
+                <span>人物身份</span>
+                <button class="switch is-on" id="miniIdentity" type="button" role="switch" aria-checked="true" aria-label="演示人物身份开关"><span></span></button>
+              </div>
+              <div class="id-prompt">
+                <p><span class="id-person">中国，25岁，女，</span>山水，写实，黄金时刻</p>
+                <p class="id-off-note">身份已关闭 · 仅保留场景描述</p>
+              </div>
+              <div class="id-identity">
+                <span>年龄 18–49</span><span>地区 中国</span><span>性别 女</span>
+              </div>
+            </div>
+          </article>
+
+          <article class="bento-card span-5">
+            <div class="bc-copy">
+              <span class="bc-tag">润色模板组</span>
+              <h3>按组拼装，而不是堆在一起</h3>
+              <p>画面、皮肤、画质分组建模，每组独立启用。还能自建「氛围」「光影」组，并标记是否与人物相关。</p>
+            </div>
+            <div class="bc-visual template-visual" aria-hidden="true">
+              <div class="tv-row"><span class="tv-dot blue"></span><b>画面描述</b><em>前置</em><i class="switch is-on"><span></span></i></div>
+              <div class="tv-row"><span class="tv-dot peach"></span><b>皮肤描述</b><em class="tag-person">人物相关</em><i class="switch is-on"><span></span></i></div>
+              <div class="tv-row"><span class="tv-dot violet"></span><b>画质描述</b><em>后置</em><i class="switch is-on"><span></span></i></div>
+              <div class="tv-row ghost"><span class="tv-dot"></span><b>+ 新建组</b><em>自定义</em><i class="switch"><span></span></i></div>
+              <div class="tv-result">大师级摄影作品，完美曝光<span>细腻肤质，自然妆容</span>8K 超高清</div>
+            </div>
+          </article>
+
+          <article class="bento-card span-7 tint-violet">
+            <div class="bc-copy">
+              <span class="bc-tag">AI 润色</span>
+              <h3>五家模型，按你的语言润色</h3>
+              <p>DeepSeek、Kimi、OpenAI 在线接入，Ollama、LM Studio 本地运行。只润中文、只润英文或双语，Token 花在刀刃上。</p>
+            </div>
+            <div class="bc-visual ai-visual" aria-hidden="true">
+              <div class="av-providers">
+                <span class="av-p deepseek">DeepSeek<em>在线</em></span>
+                <span class="av-p kimi">Kimi<em>在线</em></span>
+                <span class="av-p openai">OpenAI<em>在线</em></span>
+                <span class="av-p local">Ollama<em>本地</em></span>
+                <span class="av-p local">LM Studio<em>本地</em></span>
+              </div>
+              <div class="av-langs">
+                <span class="on">中 + 英</span><span>仅中文</span><span>仅英文</span>
+                <b>Token 更省</b>
+              </div>
+              <div class="av-bubble">把「山水，写实」改写成有晨雾、侧逆光和层次的画面描述。</div>
+            </div>
+          </article>
+
+          <article class="bento-card span-6">
+            <div class="bc-copy">
+              <span class="bc-tag">ComfyUI</span>
+              <h3>工作流不用改，直接接</h3>
+              <p>上传 API 格式 JSON，自动识别提示词节点、尺寸与采样器；普通导出格式也能识别转换。</p>
+            </div>
+            <div class="bc-visual node-visual" aria-hidden="true">
+              <div class="nv-file"><svg class="icon"><use href="#i-doc"/></svg><span>flux_realism.json</span><em>API</em></div>
+              <div class="nv-chain">
+                <span class="nv-node"><small>CLIPTextEncode</small><b>提示词</b></span>
+                <span class="nv-line"></span>
+                <span class="nv-node"><small>KSampler</small><b>采样器 · seed</b></span>
+                <span class="nv-line"></span>
+                <span class="nv-node"><small>VAEDecode</small><b>输出图像</b></span>
+              </div>
+            </div>
+          </article>
+
+          <article class="bento-card span-6 tint-dark">
+            <div class="bc-copy">
+              <span class="bc-tag">生图画廊</span>
+              <h3>完整显示，不裁切</h3>
+              <p>四列瀑布流按真实宽高比分列，窄屏自动降到三列、两列。点开大图，提示词与种子都在。</p>
+            </div>
+            <div class="bc-visual gallery-visual" aria-hidden="true">
+              <div class="gv-col">
+                <div class="gv-item tall"><div class="art" data-art="wave"></div><span>#01</span></div>
+                <div class="gv-item"><div class="art" data-art="dune"></div><span>#03</span></div>
+              </div>
+              <div class="gv-col">
+                <div class="gv-item"><div class="art" data-art="bloom"></div><span>#02</span></div>
+                <div class="gv-item tall"><div class="art" data-art="forest"></div><span>#04</span></div>
+              </div>
+              <div class="gv-col">
+                <div class="gv-item tall"><div class="art" data-art="city"></div><span>#05</span></div>
+                <div class="gv-item"><div class="art" data-art="stars"></div><span>#06</span></div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ul class="feature-list" aria-label="更多功能">
+          <li><svg class="icon"><use href="#i-check"/></svg>类别管理</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>批量添加 / 删除</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>搜索过滤</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>中英同步</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>身份总开关</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>润色模板组</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>三种润色语言</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>异步 Pipeline</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>定时关机</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>亮 / 暗主题</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>JSON 持久化</li>
+          <li><svg class="icon"><use href="#i-check"/></svg>一键备份 / 导入</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 异步流水线 -->
+    <section class="pipeline-section" id="pipeline">
+      <div class="container pipeline-grid">
+        <div class="pipeline-copy">
+          <span class="eyebrow">ASYNC PIPELINE</span>
+          <h2>让 AI 润色，<br>藏在出图的时间里</h2>
+          <p>
+            开启 AI 润色后，下一组提示词会在当前图片采样的同时于后台准备。
+            润色的等待被生图覆盖，多组任务不再一组一组地排队。
+          </p>
+          <ul class="check-list">
+            <li><svg class="icon"><use href="#i-check"/></svg>首组润色完成后，后续组边出图边润色</li>
+            <li><svg class="icon"><use href="#i-check"/></svg>多组批量任务总时长显著下降</li>
+            <li><svg class="icon"><use href="#i-check"/></svg>单组任务行为不变，随时可以关闭</li>
+          </ul>
+          <button class="btn btn-ghost btn-sm replay-btn" id="btnReplay" type="button">
+            <svg class="icon"><use href="#i-play"/></svg>重播对比
+          </button>
+        </div>
+
+        <div class="pipeline-chart" aria-label="串行与异步流水线耗时对比">
+          <div class="chart-head">
+            <span class="chart-title">6 组任务耗时对比</span>
+            <span class="chart-legend"><i class="lg-polish"></i>AI 润色<i class="lg-render"></i>ComfyUI 生图</span>
+          </div>
+          <div class="gantt" id="gantt">
+            <div class="gantt-panel" data-mode="serial">
+              <div class="gp-head">
+                <span class="gp-name"><i class="gp-dot serial"></i>串行模式</span>
+                <b class="gp-total">138s</b>
+              </div>
+              <div class="gp-lanes">
+                <div class="gp-lane-label">润色</div>
+                <div class="gp-lane" data-lane="polish"></div>
+                <div class="gp-lane-label">生图</div>
+                <div class="gp-lane" data-lane="render"></div>
+              </div>
+            </div>
+
+            <div class="gantt-panel winner" data-mode="pipeline">
+              <div class="gp-head">
+                <span class="gp-name"><i class="gp-dot pipeline"></i>异步流水线</span>
+                <b class="gp-total">98s</b>
+                <span class="gp-save">−40s · 29%</span>
+              </div>
+              <div class="gp-lanes">
+                <div class="gp-lane-label">润色</div>
+                <div class="gp-lane" data-lane="polish"></div>
+                <div class="gp-lane-label">生图</div>
+                <div class="gp-lane" data-lane="render"></div>
+              </div>
+            </div>
+
+            <div class="gantt-axis">
+              <span>0s</span><span>30s</span><span>60s</span><span>90s</span><span>120s</span>
+            </div>
+          </div>
+          <p class="chart-note">示例：6 组任务，单组润色 8s、单组生图 15s。实际耗时取决于模型、分辨率与硬件。</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 数据安全 -->
+    <section class="security-section">
+      <div class="container">
+        <div class="security-card">
+          <div class="security-copy">
+            <span class="eyebrow">LOCAL FIRST</span>
+            <h2>数据默认留在你的电脑里</h2>
+            <p>词库、身份设置、模板组、AI 配置与出图记录，全部保存在本地 <code>data/</code> 目录的 JSON 文件里。没有账号，没有云端同步。</p>
+            <ul class="security-list">
+              <li><span class="sl-icon"><svg class="icon"><use href="#i-database"/></svg></span><div><b>JSON 持久化</b><small>刷新、重启都不丢，随时可读可备份</small></div></li>
+              <li><span class="sl-icon"><svg class="icon"><use href="#i-layers"/></svg></span><div><b>独立导出 / 导入</b><small>提示词、AI 设置、ComfyUI 设置分开管理</small></div></li>
+              <li><span class="sl-icon"><svg class="icon"><use href="#i-shield"/></svg></span><div><b>只连你配置的服务</b><small>除主动填写的 API 与 ComfyUI 地址外，不向外部发送数据</small></div></li>
+            </ul>
+          </div>
+
+          <div class="security-visual" aria-label="本地数据目录示意">
+            <div class="sv-window">
+              <div class="sv-bar"><span class="traffic"><i></i><i></i><i></i></span><span>data/</span><em><svg class="icon"><use href="#i-lock"/></svg>仅本地</em></div>
+              <pre class="sv-tree"><code>data/
+├─ <b>prompts.json</b>          <span>词库 · 身份 · 模板组</span>
+├─ <b>ai_settings.json</b>     <span>厂商 · Key · 语言</span>
+├─ <b>comfy_settings.json</b>  <span>地址 · 工作流 · 尺寸</span>
+└─ <b>server_config.json</b>   <span>服务配置</span></code></pre>
+              <div class="sv-foot"><span class="ok-dot"></span>自动保存 · 服务端备份</div>
+            </div>
+            <span class="sv-orbit one"></span>
+            <span class="sv-orbit two"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 快速开始 -->
+    <section class="start-section" id="start">
+      <div class="container">
+        <div class="section-head center">
+          <span class="eyebrow">GET STARTED</span>
+          <h2>三分钟，把工作台搬回本地</h2>
+          <p>不需要数据库，不需要构建工具。有 Python 和浏览器就能跑。</p>
+        </div>
+
+        <div class="start-grid">
+          <div class="start-steps">
+            <div class="start-step">
+              <span class="ss-no">1</span>
+              <div><h3>克隆并启动服务</h3><p>默认监听 <code>8080</code> 端口。Windows 用户也可以直接双击 <code>start_server.bat</code>。</p></div>
+            </div>
+            <div class="start-step">
+              <span class="ss-no">2</span>
+              <div><h3>配置 AI（可选）</h3><p>填入 DeepSeek、Kimi、OpenAI 的 Key，或连接本地的 Ollama / LM Studio。</p></div>
+            </div>
+            <div class="start-step">
+              <span class="ss-no">3</span>
+              <div><h3>上传 ComfyUI 工作流（可选）</h3><p>在 ComfyUI 里用 <b>Save (API Format)</b> 导出 JSON，上传后即可批量生图。</p></div>
+            </div>
+            <div class="start-links">
+              <a href="https://github.com/git-squirrel/prompt-generator#readme" target="_blank" rel="noopener">
+                <svg class="icon"><use href="#i-doc"/></svg>完整 README
+                <svg class="icon arrow"><use href="#i-arrow-up-right"/></svg>
+              </a>
+              <a href="https://github.com/git-squirrel/prompt-generator/blob/main/%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E.md" target="_blank" rel="noopener">
+                <svg class="icon"><use href="#i-doc"/></svg>操作说明
+                <svg class="icon arrow"><use href="#i-arrow-up-right"/></svg>
+              </a>
+            </div>
+          </div>
+
+          <div class="start-terminal">
+            <div class="term-bar">
+              <span class="traffic"><i></i><i></i><i></i></span>
+              <span class="term-title">终端 · 快速开始</span>
+              <button class="term-copy" id="btnCopyCmd" type="button" aria-label="复制启动命令">
+                <svg class="icon"><use href="#i-copy"/></svg><span>复制</span>
+              </button>
+            </div>
+            <pre class="term-body" id="cmdText"><code><span class="t-comment"># 1. 获取项目</span>
+<span class="t-prompt">$</span> git clone https://github.com/git-squirrel/prompt-generator.git
+<span class="t-prompt">$</span> cd prompt-generator
+
+<span class="t-comment"># 2. 启动服务（Python 3.8+）</span>
+<span class="t-prompt">$</span> python start_server.py
+
+<span class="t-comment"># 3. 浏览器打开</span>
+<span class="t-link">→ http://localhost:8080</span></code></pre>
+            <div class="term-foot">
+              <span><svg class="icon"><use href="#i-terminal"/></svg>Windows 可双击 start_server.bat</span>
+              <span class="term-status"><i></i>无需数据库</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="start-callouts">
+          <div class="callout">
+            <span class="callout-icon"><svg class="icon"><use href="#i-zap"/></svg></span>
+            <div><b>建议使用 API 格式工作流</b><p>ComfyUI 右上角 <b>Save (API Format)</b> 导出的 JSON 解析最稳定；普通导出格式也能自动转换。</p></div>
+          </div>
+          <div class="callout">
+            <span class="callout-icon"><svg class="icon"><use href="#i-lock"/></svg></span>
+            <div><b>先本地，再云端</b><p>不配置任何 AI 也能使用随机组合、模板优化与 ComfyUI 生图，所有核心功能离线可用。</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 最终 CTA -->
+    <section class="cta-section">
+      <div class="container">
+        <div class="cta-card">
+          <div class="cta-bg" aria-hidden="true"><span class="cta-orb one"></span><span class="cta-orb two"></span><span class="cta-grid"></span></div>
+          <div class="cta-inner">
+            <span class="cta-eyebrow"><svg class="icon"><use href="#i-github"/></svg>OPEN SOURCE · MIT LICENSE</span>
+            <h2>下一张图，<br>从一句好提示词开始。</h2>
+            <p>开源、免费、可自托管。词库与出图记录始终留在你自己的电脑里。</p>
+            <div class="cta-actions">
+              <a class="btn btn-white btn-lg" href="https://github.com/git-squirrel/prompt-generator" target="_blank" rel="noopener">
+                <svg class="icon"><use href="#i-github"/></svg>在 GitHub 查看
+              </a>
+              <a class="btn btn-outline-light btn-lg" href="#start">
+                快速开始
+                <svg class="icon"><use href="#i-arrow-right"/></svg>
+              </a>
+            </div>
+            <div class="cta-meta">Python 3.8+ · ComfyUI · DeepSeek / Kimi / OpenAI / Ollama / LM Studio</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a class="brand" href="#top">
+            <svg class="brand-mark" aria-hidden="true"><use href="#i-logo"/></svg>
+            <span class="brand-text"><b>Prompt Generator</b><small>提示词生成器</small></span>
+          </a>
+          <p>AI 提示词管理与生图一体化工具。随机组合、AI 润色、ComfyUI 生图，全部收进一个本地工作台。</p>
+          <div class="footer-badges"><span>MIT License</span><span>Local first</span><span>v3.0</span></div>
+        </div>
+
+        <div class="footer-col">
+          <h4>项目</h4>
+          <a href="https://github.com/git-squirrel/prompt-generator" target="_blank" rel="noopener">GitHub 仓库</a>
+          <a href="https://github.com/git-squirrel/prompt-generator/issues" target="_blank" rel="noopener">问题反馈</a>
+          <a href="https://github.com/git-squirrel/prompt-generator#readme" target="_blank" rel="noopener">README</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>文档</h4>
+          <a href="#start">快速开始</a>
+          <a href="https://github.com/git-squirrel/prompt-generator/blob/main/%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E.md" target="_blank" rel="noopener">操作说明</a>
+          <a href="https://github.com/git-squirrel/prompt-generator#readme" target="_blank" rel="noopener">ComfyUI 生图</a>
+        </div>
+
+        <div class="footer-col">
+          <h4>协议</h4>
+          <a href="https://github.com/git-squirrel/prompt-generator/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+          <a href="#features">功能总览</a>
+          <a href="#pipeline">异步流水线</a>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <span>© 2026 Prompt Generator · 本页为项目功能演示介绍页</span>
+        <span>页面内演示为前端模拟，真实功能需在本地运行服务</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 图片查看器 -->
+  <dialog class="lightbox" id="lightbox" aria-label="查看生成的图片">
+    <div class="lb-inner">
+      <button class="lb-close" id="lbClose" type="button" aria-label="关闭">
+        <svg class="icon"><use href="#i-close"/></svg>
+      </button>
+      <div class="lb-art" id="lbArt"></div>
+      <div class="lb-side">
+        <span class="lb-tag">生图画廊 · 演示</span>
+        <h3 id="lbTitle">山水</h3>
+        <div class="lb-meta"><span id="lbSize">1024 × 1024</span><span id="lbSeed">seed 438892078</span></div>
+        <p class="lb-prompt" id="lbPrompt"></p>
+        <div class="lb-actions">
+          <button class="d-btn d-primary" id="lbDownload" type="button"><svg class="icon"><use href="#i-download"/></svg>下载演示图</button>
+          <button class="d-btn" id="lbDelete" type="button"><svg class="icon"><use href="#i-trash"/></svg>删除</button>
+        </div>
+        <p class="lb-note">演示图为程序生成的抽象画面，不代表真实模型输出。</p>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
