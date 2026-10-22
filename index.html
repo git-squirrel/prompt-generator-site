@@ -553,7 +553,7 @@
         </div>
 
         <div class="bento">
-          <article class="bento-card span-7 tint-blue">
+          <article class="bento-card span-7 tint-blue is-linked" data-demo-jump="library" tabindex="0" role="link" aria-label="词条管理：前往交互演示的词条库">
             <div class="bc-copy">
               <span class="bc-tag">词条管理</span>
               <h3>词库不再是一团乱麻</h3>
@@ -575,6 +575,7 @@
               </div>
               <div class="lv-foot"><span><svg class="icon"><use href="#i-check"/></svg>批量导入</span><span><svg class="icon"><use href="#i-check"/></svg>中英同步</span><span><svg class="icon"><use href="#i-check"/></svg>刷新不丢</span></div>
             </div>
+            <span class="bento-go">去演示里试试<svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
           </article>
 
           <article class="bento-card span-5 tint-warm">
@@ -598,7 +599,7 @@
             </div>
           </article>
 
-          <article class="bento-card span-5">
+          <article class="bento-card span-5 is-linked" data-demo-jump="templates" tabindex="0" role="link" aria-label="润色模板组：前往交互演示试用模板优化">
             <div class="bc-copy">
               <span class="bc-tag">润色模板组</span>
               <h3>按组拼装，而不是堆在一起</h3>
@@ -611,6 +612,7 @@
               <div class="tv-row ghost"><span class="tv-dot"></span><b>+ 新建组</b><em>自定义</em><i class="switch"><span></span></i></div>
               <div class="tv-result">大师级摄影作品，完美曝光<span>细腻肤质，自然妆容</span>8K 超高清</div>
             </div>
+            <span class="bento-go">去演示里试试<svg class="icon" aria-hidden="true"><use href="#i-arrow-right"/></svg></span>
           </article>
 
           <article class="bento-card span-7 tint-violet">
@@ -698,7 +700,12 @@
       <div class="container pipeline-grid">
         <div class="pipeline-copy">
           <span class="eyebrow">ASYNC PIPELINE</span>
-          <h2>让 AI 润色，<br>藏在出图的时间里</h2>
+          <h2>
+            <a class="pipeline-title-link" href="#pipelineChart" id="pipelineTitle" data-no-smooth title="点击重播流水线对比">
+              让 AI 润色，<br>藏在出图的时间里
+              <span class="title-play" aria-hidden="true"><svg class="icon"><use href="#i-play"/></svg></span>
+            </a>
+          </h2>
           <p>
             开启 AI 润色后，下一组提示词会在当前图片采样的同时于后台准备。
             润色的等待被生图覆盖，多组任务不再一组一组地排队。
@@ -713,7 +720,7 @@
           </button>
         </div>
 
-        <div class="pipeline-chart" aria-label="串行与异步流水线耗时对比">
+        <div class="pipeline-chart" id="pipelineChart" aria-label="串行与异步流水线耗时对比">
           <div class="chart-head">
             <span class="chart-title">6 组任务耗时对比</span>
             <span class="chart-legend"><i class="lg-polish"></i>AI 润色<i class="lg-render"></i>ComfyUI 生图</span>

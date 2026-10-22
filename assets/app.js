@@ -1319,9 +1319,62 @@
   function replayGantt() {
     const gantt = $("#gantt");
     if (!gantt) return;
-    gantt.classList.add("is-paused");
-    void gantt.offsetWidth;
-    requestAnimationFrame(() => gantt.classList.remove("is-paused"));
+    const button = $("#btnReplay");
+    if (button && button.disabled) return;
+
+    const original = button ? button.innerHTML : "";
+    if (button) {
+      button.disabled = true;
+      button.innerHTML = `<svg class="icon spin"><use href="#i-refresh"/></svg>重播中…`;
+    }
+
+    gantt.classList.remove("is-paused");
+    const bars = $$(".gp-bar", gantt);
+    bars.forEach((bar) => {
+      bar.style.animation = "none";
+    });
+    void gantt.offsetHeight;
+    bars.forEach((bar) => {
+      bar.style.animation = "";
+    });
+    gantt.classList.add("is-replaying");
+
+    const rect = gantt.getBoundingClientRect();
+    if (rect.top < 80 || rect.bottom > window.innerHeight - 20) {
+      const top = Math.max(0, rect.top + window.scrollY - 100);
+      window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+    }
+
+    clearTimeout(replayGantt._timer);
+    replayGantt._timer = setTimeout(() => {
+      gantt.classList.remove("is-replaying");
+      if (button) {
+        button.disabled = false;
+        button.innerHTML = original;
+      }
+    }, 2100);
+  }
+
+  function goToDemo(kind) {
+    const isTemplates = kind === "templates";
+    const target = isTemplates ? $("#btnPolish") : $(".lib-col");
+    const scrollTarget = isTemplates ? $(".prompt-col") : target;
+    if (!target || !scrollTarget) return;
+
+    target.classList.add("demo-highlight");
+    const top = Math.max(0, scrollTarget.getBoundingClientRect().top + window.scrollY - 96);
+    window.scrollTo({ top, behavior: reduceMotion ? "auto" : "smooth" });
+
+    clearTimeout(goToDemo._timer);
+    goToDemo._timer = setTimeout(() => {
+      target.classList.remove("demo-highlight");
+    }, 3000);
+
+    toast(
+      isTemplates
+        ? "已定位到提示词区：点「模板优化」即可套用画面、皮肤与画质模板"
+        : "已定位到词条库：开关类别，或点选词条锁定下一次组合"
+    );
   }
 
   /* ---------------------------------------------------------
@@ -1526,6 +1579,23 @@
     });
 
     $("#btnReplay")?.addEventListener("click", replayGantt);
+    $("#pipelineTitle")?.addEventListener("click", (event) => {
+      event.preventDefault();
+      replayGantt();
+    });
+
+    $$("[data-demo-jump]").forEach((card) => {
+      const activate = (event) => {
+        if (event.target.closest("a, button")) return;
+        goToDemo(card.dataset.demoJump);
+      };
+      card.addEventListener("click", activate);
+      card.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        goToDemo(card.dataset.demoJump);
+      });
+    });
   }
 
   function initReveal() {
@@ -1632,6 +1702,7 @@
   function initSmoothAnchors() {
     $$('a[href^="#"]').forEach((link) => {
       link.addEventListener("click", (event) => {
+        if (link.hasAttribute("data-no-smooth")) return;
         const id = link.getAttribute("href");
         if (!id || id === "#") return;
         const target = document.querySelector(id);

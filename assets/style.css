@@ -216,6 +216,12 @@ img {
   transform: translateY(0);
 }
 
+.btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+  transform: none;
+}
+
 .btn-primary {
   --btn-bg: linear-gradient(135deg, #5d7bff 0%, #4d6bfe 45%, #7057ff 100%);
   --btn-fg: #fff;
@@ -2290,6 +2296,82 @@ html[data-theme="dark"] .demo-shell {
   border-color: var(--line-2);
 }
 
+.bento-card.is-linked {
+  cursor: pointer;
+}
+
+.bento-card.is-linked:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+.bento-card.is-linked:hover .bento-go {
+  opacity: 1;
+  gap: 9px;
+}
+
+.bento-card.is-linked:hover .bento-go .icon {
+  transform: translateX(3px);
+}
+
+.bento-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  margin-top: -6px;
+  color: var(--brand);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  opacity: 0.82;
+  transition: opacity 0.2s ease, gap 0.2s ease;
+}
+
+.bento-go .icon {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.2s ease;
+}
+
+.tint-dark .bento-go {
+  color: #aebfff;
+}
+
+/* highlight when a feature card jumps into the interactive demo */
+.lib-col.demo-highlight {
+  position: relative;
+  z-index: 2;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px rgba(111, 140, 255, 0.7), 0 0 0 5px rgba(111, 140, 255, 0.1);
+  animation: highlightIn 0.45s ease both;
+}
+
+#btnPolish.demo-highlight {
+  border-color: #9eb0ff;
+  box-shadow: 0 0 0 3px rgba(111, 140, 255, 0.28), 0 0 26px rgba(111, 140, 255, 0.38);
+  animation: pulseTarget 1.25s ease-in-out infinite;
+}
+
+@keyframes highlightIn {
+  from {
+    opacity: 0.5;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulseTarget {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px rgba(111, 140, 255, 0.22), 0 0 18px rgba(111, 140, 255, 0.28);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(111, 140, 255, 0.36), 0 0 30px rgba(111, 140, 255, 0.5);
+  }
+}
+
 .bento-card.span-7 {
   grid-column: span 7;
 }
@@ -2928,6 +3010,43 @@ html[data-theme="dark"] .tv-row em.tag-person {
   letter-spacing: -0.04em;
 }
 
+.pipeline-title-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.pipeline-title-link:hover {
+  color: var(--brand);
+}
+
+.title-play {
+  display: inline-grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  margin-left: 10px;
+  border: 1px solid var(--line-2);
+  border-radius: 50%;
+  color: var(--brand);
+  vertical-align: middle;
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.title-play .icon {
+  width: 12px;
+  height: 12px;
+  margin-left: 1px;
+}
+
+.pipeline-title-link:hover .title-play {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: #fff;
+  transform: scale(1.06);
+}
+
 .pipeline-copy > p {
   font-size: 15px;
   line-height: 1.85;
@@ -2967,6 +3086,7 @@ html[data-theme="dark"] .tv-row em.tag-person {
   padding: 18px;
   color: #e9eeff;
   box-shadow: 0 40px 80px -44px rgba(11, 17, 32, 0.7);
+  scroll-margin-top: 90px;
 }
 
 .chart-head {
